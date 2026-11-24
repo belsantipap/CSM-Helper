@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ตัวช่วยกรอก CSM</title>
+<style>
+:root{
+  --bg:#eef0f2; --card:#fff; --ink:#15191d; --muted:#5d6b76;
+  --line:#d4dade; --line2:#b7c0c7; --accent:#b3401a; --accent-soft:#fbeee8;
+  --ok:#1b5e20; --ok-soft:#e6f1e7;
+  --sans:"IBM Plex Sans Thai","Noto Sans Thai","Segoe UI",system-ui,sans-serif;
+  --mono:ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.55}
+.wrap{max-width:900px;margin:0 auto;padding:0 16px;padding-block:22px 90px}
+h1{font-size:21px;margin:0 0 4px;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:13px;margin:0 0 20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:16px}
+.card h2{font-size:13px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:0 0 12px;font-weight:700}
+.step{display:flex;gap:10px;margin-bottom:9px;font-size:13.5px}
+.step b{flex:none;width:19px;height:19px;border-radius:50%;background:var(--accent);color:#fff;
+  display:grid;place-items:center;font-size:11px;font-weight:700;margin-top:2px}
+.bm{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;font-weight:600;
+  padding:9px 20px;border-radius:7px;margin:6px 0;cursor:grab;font-size:14px}
+.bm:active{cursor:grabbing}
+.note{background:var(--accent-soft);border-left:3px solid var(--accent);padding:10px 13px;
+  font-size:12.5px;color:#6d4030;border-radius:0 5px 5px 0;margin-top:10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:620px){.grid2{grid-template-columns:1fr}}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px}
+input[type=text]{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--line2);border-radius:5px;background:#fff;color:var(--ink)}
+input.mono{font-family:var(--mono)}
+input:focus-visible,button:focus-visible,a:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{font-size:10.5px;font-weight:700;color:var(--muted);padding:6px 2px;text-align:center;line-height:1.25;border-bottom:1px solid var(--line)}
+thead th:first-child{text-align:left;padding-left:2px}
+tbody td{border-bottom:1px solid #eceff1;padding:3px 2px;vertical-align:middle}
+tbody td:first-child{font-size:12.5px;line-height:1.35;padding:7px 6px 7px 2px}
+tbody tr.sec td{background:#f3f5f6;font-weight:700;font-size:12px;color:var(--muted);padding:6px;
+  letter-spacing:.04em;text-transform:uppercase}
+.no{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-right:7px}
+.opt{width:100%;min-width:34px;padding:7px 0;font:600 13px var(--mono);cursor:pointer;
+  background:#fff;border:1px solid var(--line2);border-radius:5px;color:var(--muted)}
+.opt:hover{border-color:var(--accent);color:var(--accent)}
+.opt.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.opt.na{font-size:11px}
+.opt.on.na{background:var(--muted);border-color:var(--muted)}
+.rowfill td{background:#fcfcfd}
+.bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);
+  padding:11px 16px;padding-bottom:calc(11px + env(safe-area-inset-bottom,0px));z-index:20}
+.bar-in{max-width:900px;margin:0 auto;display:flex;gap:11px;align-items:center;flex-wrap:wrap}
+.bar .cnt{flex:1;min-width:130px;font-size:12.5px;color:var(--muted)}
+.btn{font:600 13.5px var(--sans);padding:9px 17px;border-radius:6px;cursor:pointer;
+  background:#fff;border:1px solid var(--line2);color:var(--ink)}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.pri:hover{filter:brightness(1.08);color:#fff}
+.btn[disabled]{opacity:.45;cursor:not-allowed;filter:none}
+textarea#out{width:100%;height:150px;font:12px/1.5 var(--mono);padding:10px;border:1px solid var(--line2);
+  border-radius:6px;background:#fafbfb;color:var(--ink);resize:vertical}
+.okmsg{background:var(--ok-soft);color:var(--ok);padding:9px 13px;border-radius:5px;font-size:13px;margin-top:10px}
+.warn{color:var(--accent);font-size:12.5px;margin-top:8px}
+details{margin-top:12px}
+summary{cursor:pointer;font-size:13px;color:var(--muted);font-weight:600}
+details p,details li{font-size:12.5px;color:var(--muted)}
+details ul{margin:8px 0;padding-left:20px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>ตัวช่วยกรอก CSM</h1>
+<p class="sub">ติ๊กคะแนนตามใบประเมินที่อยู่ในมือ แล้วให้มันกรอกลง Microsoft Form ให้ · ทำงานในเครื่องคุณทั้งหมด ไม่ส่งข้อมูลออกไปไหน</p>
+
+<div class="card">
+  <h2>ติดตั้งครั้งเดียว</h2>
+  <div class="step"><b>1</b><div>กด <code>Ctrl+Shift+B</code> ให้แถบ bookmark โผล่ขึ้นมา</div></div>
+  <div class="step"><b>2</b><div><b>ลาก</b>ปุ่มข้างล่างนี้ไปวางบนแถบ bookmark (ลาก ไม่ใช่กด)</div></div>
+  <a class="bm" id="bmlink" href="#" draggable="true">กรอก CSM</a>
+  <div class="step"><b>3</b><div>เสร็จแล้ว ใช้ได้ตลอด ไม่ต้องติดตั้งอีก</div></div>
+  <div class="note">ถ้าลากไม่ได้ ให้คลิกขวาบนแถบ bookmark → Add page → ช่อง URL วางโค้ดจาก <b>ดูโค้ดเต็ม</b> ข้างล่าง</div>
+  <details>
+    <summary>สคริปต์นี้ทำอะไร / ปลอดภัยไหม</summary>
+    <ul>
+      <li>ทำงานเฉพาะตอนคุณกดปุ่ม บนแท็บที่เปิดอยู่เท่านั้น ไม่ได้รันเบื้องหลัง</li>
+      <li><b>ไม่ส่งข้อมูลออกนอกเครื่อง</b> ในโค้ดไม่มีการเรียกเว็บปลายทางใด ๆ</li>
+      <li>มองแท็บอื่นไม่ได้ อ่านรหัสผ่านที่เซฟไว้ไม่ได้ อ่านไฟล์ในเครื่องไม่ได้</li>
+      <li>ไม่ใช่ส่วนขยาย ไม่ได้ติดตั้งอะไรลงเครื่อง เป็น bookmark ธรรมดา ลบทิ้งได้ตลอด</li>
+      <li><b>ไม่กด Submit ให้</b> กรอกเสร็จแล้วหยุด ให้คุณตรวจแล้วกดเอง</li>
+    </ul>
+    <p style="margin:10px 0 4px"><b>ดูโค้ดเต็ม</b></p>
+    <textarea id="srcview" readonly style="width:100%;height:110px;font:11px/1.4 var(--mono);padding:8px;border:1px solid var(--line2);border-radius:5px"></textarea>
+  </details>
+</div>
+
+<div class="card">
+  <h2>หัวกระดาษ</h2>
+  <div class="grid2">
+    <div><label for="po">เลขที่ PO</label><input type="text" id="po" class="mono" placeholder="4100139405" inputmode="numeric"></div>
+    <div><label for="iv">หมายเลขเอกสาร (Invoice)</label><input type="text" id="iv" class="mono" placeholder="136/6760"></div>
+  </div>
+  <div style="margin-top:12px"><label for="job">ชื่องาน / กิจกรรม / สัญญา</label><input type="text" id="job" placeholder="ลอกคลองภายใน P2 Jul26"></div>
+  <div class="grid2" style="margin-top:12px">
+    <div><label for="vendor">ชื่อผู้รับเหมา</label><input type="text" id="vendor" list="vlist" placeholder="พิมพ์หรือเลือกจากที่เคยใช้"><datalist id="vlist"></datalist></div>
+    <div><label for="vcode">รหัสผู้รับเหมา (ไม่มีก็เว้นว่าง)</label><input type="text" id="vcode" class="mono" placeholder="1000331"></div>
+  </div>
+  <div style="margin-top:12px"><label for="email">อีเมลผู้เกี่ยวข้อง</label><input type="text" id="email"></div>
+  <div class="warn" id="memnote" hidden>จำชื่อผู้รับเหมาไว้ในเครื่องนี้แล้ว ครั้งหน้าพิมพ์ตัวแรกจะขึ้นให้เลือก</div>
+</div>
+
+<div class="card">
+  <h2>คะแนน 27 ข้อ</h2>
+  <div style="overflow-x:auto">
+  <table id="tbl">
+    <thead><tr>
+      <th style="width:52%">หัวข้อ</th>
+      <th>1<br>ต้องปรับปรุง</th><th>2<br>พอใช้</th><th>3<br>ยอมรับ</th><th>4<br>ดี</th><th>ไม่<br>เกี่ยวข้อง</th>
+    </tr></thead>
+    <tbody></tbody>
+  </table>
+  </div>
+  <div style="margin-top:14px">
+    <label>บันทึกค่าปรับ</label>
+    <button class="btn" id="fineN" style="margin-right:6px">ไม่มี</button>
+    <button class="btn" id="fineY">มี</button>
+  </div>
+</div>
+
+<div class="card">
+  <h2>รหัสสำหรับวางใน bookmarklet</h2>
+  <textarea id="out" readonly placeholder="ติ๊กให้ครบ 27 ข้อก่อน แล้วรหัสจะขึ้นตรงนี้"></textarea>
+  <div id="copied" class="okmsg" hidden>คัดลอกแล้ว — ไปที่หน้า MS Form กดปุ่ม "กรอก CSM" บนแถบ bookmark แล้ววางลงไป</div>
+</div>
+
+</div>
+
+<div class="bar"><div class="bar-in">
+  <span class="cnt" id="cnt">ยังไม่ได้ติ๊ก</span>
+  <button class="btn" id="clear">ล้างคะแนน</button>
+  <button class="btn pri" id="copy" disabled>คัดลอกรหัส</button>
+</div></div>
+<script type="text/plain" id="bksrc">(function(){
+var D=document;
+if(D.getElementById('csmbk')){D.getElementById('csmbk').remove();return;}
+var box=D.createElement('div');box.id='csmbk';
+box.style.cssText='position:fixed;z-index:2147483647;top:12px;right:12px;width:340px;background:#fff;color:#16191c;border:1px solid #c9d0d6;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.28);font:13px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;padding:14px';
+box.innerHTML='<div style="font-weight:600;margin-bottom:8px;font-size:14px">กรอก CSM</div>'+
+'<textarea id="csmtx" placeholder="วางรหัสจากหน้าตัวช่วยกรอก CSM ที่นี่" style="width:100%;height:95px;font:12px/1.4 ui-monospace,Menlo,monospace;box-sizing:border-box;border:1px solid #c9d0d6;border-radius:6px;padding:7px;resize:vertical"></textarea>'+
+'<div style="margin-top:9px;display:flex;gap:8px"><button id="csmgo" style="flex:1;padding:8px;font:600 13px inherit;cursor:pointer;background:#b3401a;color:#fff;border:0;border-radius:6px">กรอกฟอร์ม</button>'+
+'<button id="csmx" style="padding:8px 12px;font:13px inherit;cursor:pointer;background:#fff;border:1px solid #c9d0d6;border-radius:6px">ปิด</button></div>'+
+'<div id="csmst" style="margin-top:9px;color:#5a6670;min-height:20px"></div>';
+D.body.appendChild(box);
+var st=D.getElementById('csmst');
+function say(t,bad){st.textContent=t;st.style.color=bad?'#b3261e':'#1b5e20';}
+D.getElementById('csmx').onclick=function(){box.remove();};
+D.getElementById('csmgo').onclick=function(){run(D.getElementById('csmtx').value);};
+function wait(ms){return new Promise(function(r){setTimeout(r,ms);});}
+function btn(re){return [].slice.call(D.querySelectorAll('button')).filter(function(b){return re.test(b.innerText.trim());});}
+function sv(el,v){var p=el.tagName==='TEXTAREA'?HTMLTextAreaElement.prototype:HTMLInputElement.prototype;
+Object.getOwnPropertyDescriptor(p,'value').set.call(el,v);
+el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));}
+function run(txt){
+ var d={};txt.split(/\r?\n/).forEach(function(l){var i=l.indexOf('=');if(i>0)d[l.slice(0,i).trim().toUpperCase()]=l.slice(i+1).trim();});
+ var ans=(d.ANS||'').replace(/[^1-4Nn]/g,'').toUpperCase();
+ if(ans.length!==27){say('รหัสไม่ครบ ต้องมีคำตอบ 27 ข้อ (อ่านได้ '+ans.length+')',1);return;}
+ var map={'1':0,'2':1,'3':2,'4':3,'N':4};
+ (async function(){try{
+  say('กำลังกรอกหน้าแรก...');
+  var b=btn(/start now|เริ่ม|resume/i);if(b.length){b[b.length-1].click();await wait(2600);}
+  var t=[].slice.call(D.querySelectorAll('input')).filter(function(e){return e.type==='text'&&e.offsetParent;});
+  if(t.length<4){say('ไม่เจอช่องกรอกหน้าแรก — เปิดฟอร์มที่หน้าแรกก่อนแล้วกดใหม่',1);return;}
+  [d.PO,d.IV,d.JOB,d.VENDOR,d.VCODE].forEach(function(v,i){if(t[i]&&v!=null&&v!==''){t[i].focus();sv(t[i],v);t[i].blur();}});
+  await wait(450);
+  var c=D.querySelector('[role="combobox"]');
+  if(!c)c=[].slice.call(D.querySelectorAll('button,[role="button"]')).filter(function(e){return /select your answer/i.test(e.innerText);})[0];
+  if(c){c.click();await wait(1300);
+   var o=[].slice.call(D.querySelectorAll('[role="option"]')).filter(function(x){return /มาตรฐาน/.test(x.innerText);});
+   if(o.length){o[0].click();await wait(650);}}
+  b=btn(/^next$/i);if(b.length){b[b.length-1].click();await wait(3500);}
+  say('กำลังกรอกตารางคะแนน...');
+  var gs=[].slice.call(D.querySelectorAll('[role="radiogroup"]'));
+  var grid=gs.filter(function(g){return g.querySelectorAll('[role="radio"]').length===5;});
+  if(grid.length!==27){say('ไม่เจอตารางคะแนน 27 ข้อ (เจอ '+grid.length+') — ฟอร์มอาจเปลี่ยนไป',1);return;}
+  grid.forEach(function(g,i){var rs=g.querySelectorAll('[role="radio"]');var k=map[ans.charAt(i)];if(rs[k])rs[k].click();});
+  var fine=(d.FINE||'N').toUpperCase().charAt(0)==='Y';
+  gs.filter(function(g){return g.querySelectorAll('[role="radio"]').length===2;}).forEach(function(g){
+   var rs=[].slice.call(g.querySelectorAll('[role="radio"]')),pick=-1;
+   rs.forEach(function(r,j){var tx=((r.closest&&r.closest('label'))||r.parentElement||r).innerText.trim();
+    if(fine?/^มี|Yes/i.test(tx):/ไม่มี|^No/i.test(tx))pick=j;});
+   if(pick>=0)rs[pick].click();});
+  await wait(800);
+  var miss=[];
+  grid.forEach(function(g,i){var rs=[].slice.call(g.querySelectorAll('[role="radio"]')),sel=-1;
+   rs.forEach(function(r,j){if(r.getAttribute('aria-checked')==='true')sel=j;});
+   if(sel!==map[ans.charAt(i)])miss.push(i+1);});
+  if(miss.length){say('กรอกไม่ตรง '+miss.length+' ข้อ (แถวที่ '+miss.join(', ')+') — ตรวจเองก่อนส่ง',1);return;}
+  b=btn(/^next$/i);if(b.length){b[b.length-1].click();await wait(3100);}
+  var ta=null,tas=D.querySelectorAll('textarea');
+  for(var i2=0;i2<tas.length;i2++){if(tas[i2].id!=='csmtx'){ta=tas[i2];break;}}
+  if(ta&&d.EMAIL){sv(ta,d.EMAIL);ta.blur();}
+  say('กรอกครบแล้ว ✓ ตรวจความถูกต้องแล้วกด Submit เอง');
+ }catch(e){say('ผิดพลาด: '+e.message,1);}})();
+}
+})();</script>
+<script>
+(function(){
+"use strict";
+var ROWS=[
+ ["sec","1 · ด้านคุณภาพในการทำงาน"],
+ ["1.1","คุณภาพของผลงานโดยภาพรวม"],
+ ["1.2","ปฏิบัติตามข้อกำหนดในสัญญาและการรายงานผล"],
+ ["1.3","ประสิทธิภาพการทำงาน / ความสามารถของพนักงาน"],
+ ["1.4","จัดวัสดุอุปกรณ์ที่จำเป็นได้อย่างพอเพียง"],
+ ["1.5","ประสานงานและร่วมมือกับตัวแทนผู้ว่าจ้าง"],
+ ["1.6","ความพร้อมในการเข้าทำงาน และความเชื่อถือได้"],
+ ["1.7","ข้อมูลคุณสมบัติและทักษะของพนักงานถูกต้อง"],
+ ["1.8","ตอบสนองต่อคำขอของลูกค้า / แก้ไขปัญหา"],
+ ["1.9","ใช้จำนวนแรงงานเป็นไปตามที่ระบุในสัญญา"],
+ ["1.10","บริหารทรัพยากร หัวหน้างานติดต่อได้ง่าย (TCO)"],
+ ["1.11","ส่งมอบงานครบถ้วน เก็บงานเรียบร้อย"],
+ ["sec","2 · ด้านความปลอดภัยในการทำงาน"],
+ ["2.1","การฝ่าฝืนกฎระเบียบ / ถูกบันทึกลงโทษ"],
+ ["2.2","Tool Box Talk เข้าใจและปฏิบัติครบถ้วน"],
+ ["2.3","PPE ขั้นพื้นฐานและเฉพาะทาง ใช้ถูกต้อง"],
+ ["2.4","Housekeeping สภาพพื้นที่ปลอดภัย เป็นระเบียบ"],
+ ["2.5","ตัดแยกแหล่งพลังงานถูกต้องครบถ้วน"],
+ ["2.6","ทำงานในที่อับอากาศอย่างปลอดภัย"],
+ ["2.7","Lifting & Rigging อย่างปลอดภัย"],
+ ["2.8","จัดการความปลอดภัย ควบคุมงาน เครื่องมือเครื่องจักร"],
+ ["2.9","รายงานอุบัติการณ์ สอบสวน จัดทำบันทึกสถิติ"],
+ ["2.10","ใบอนุญาตก่อนเริ่มงาน / ประเมินความเสี่ยง"],
+ ["2.11","เครื่องมือเชื่อม ตัดแก๊ส อุปกรณ์ไฟฟ้า ปลอดภัย"],
+ ["2.12","เครื่องจักรและยานพาหนะอยู่ในสภาพปลอดภัย"],
+ ["2.13","ทำงานบนที่สูง / นั่งร้าน อย่างปลอดภัย"],
+ ["sec","3 · ด้านความรับผิดชอบต่อสังคม"],
+ ["3.1","การจ่ายค่าจ้าง ดูแลคนงาน (Social accountability)"],
+ ["sec","4 · ด้านสิ่งแวดล้อม"],
+ ["4.1","ไม่ทำให้เกิดมลภาวะกระทบกับสิ่งแวดล้อม"],
+ ["4.2","ทำความสะอาดพื้นที่ / กำจัดของเสียถูกวิธี"]
+];
+var OPTS=["1","2","3","4","N"];
+var ans=new Array(27).fill(null);
+var fine="N";
+var DEFAULT_EMAIL="processengineeringplant2@siamcitycement.com";
+var $=function(id){return document.getElementById(id);};
+
+/* ---- bookmarklet link ---- */
+try{
+  var src=$("bksrc").textContent.trim();
+  $("bmlink").href="javascript:"+encodeURIComponent(src);
+  $("srcview").value="javascript:"+encodeURIComponent(src);
+}catch(e){}
+
+/* ---- build table ---- */
+(function(){
+  var tb=$("tbl").querySelector("tbody"),idx=0;
+  ROWS.forEach(function(r){
+    var tr=document.createElement("tr");
+    if(r[0]==="sec"){tr.className="sec";var td=document.createElement("td");td.colSpan=6;td.textContent=r[1];tr.appendChild(td);tb.appendChild(tr);return;}
+    var i=idx++;
+    tr.dataset.i=i;
+    var td0=document.createElement("td");
+    var sp=document.createElement("span");sp.className="no";sp.textContent=r[0];
+    td0.appendChild(sp);td0.appendChild(document.createTextNode(r[1]));
+    tr.appendChild(td0);
+    OPTS.forEach(function(o,k){
+      var td=document.createElement("td");
+      var b=document.createElement("button");
+      b.type="button";b.className="opt"+(o==="N"?" na":"");
+      b.textContent=o==="N"?"N/A":o;
+      b.setAttribute("aria-label",r[0]+" คะแนน "+(o==="N"?"ไม่เกี่ยวข้อง":o));
+      b.onclick=function(){
+        ans[i]=(ans[i]===o)?null:o;
+        [].forEach.call(tr.querySelectorAll(".opt"),function(x,j){x.classList.toggle("on",ans[i]===OPTS[j]);});
+        tr.classList.toggle("rowfill",ans[i]!==null);
+        refresh();
+      };
+      td.appendChild(b);tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+})();
+
+/* ---- contractor memory (this browser only) ---- */
+function loadV(){try{return JSON.parse(localStorage.getItem("csm_vendors")||"[]");}catch(e){return [];}}
+function saveV(name,code){
+  if(!name)return;
+  try{
+    var v=loadV().filter(function(x){return x.n!==name;});
+    v.unshift({n:name,c:code||""});
+    localStorage.setItem("csm_vendors",JSON.stringify(v.slice(0,30)));
+    $("memnote").hidden=false;
+  }catch(e){}
+}
+function fillV(){
+  var dl=$("vlist");dl.textContent="";
+  loadV().forEach(function(x){var o=document.createElement("option");o.value=x.n;dl.appendChild(o);});
+}
+fillV();
+$("vendor").addEventListener("change",function(){
+  var hit=loadV().filter(function(x){return x.n===$("vendor").value;})[0];
+  if(hit&&!$("vcode").value)$("vcode").value=hit.c;
+  refresh();
+});
+try{$("email").value=localStorage.getItem("csm_email")||DEFAULT_EMAIL;}catch(e){$("email").value=DEFAULT_EMAIL;}
+$("email").addEventListener("change",function(){try{localStorage.setItem("csm_email",$("email").value);}catch(e){}});
+
+/* ---- fine buttons ---- */
+function setFine(v){fine=v;$("fineN").classList.toggle("pri",v==="N");$("fineY").classList.toggle("pri",v==="Y");refresh();}
+$("fineN").onclick=function(){setFine("N");};
+$("fineY").onclick=function(){setFine("Y");};
+setFine("N");
+
+/* ---- output ---- */
+["po","iv","job","vendor","vcode","email"].forEach(function(id){$(id).addEventListener("input",refresh);});
+
+function refresh(){
+  var done=ans.filter(function(x){return x!==null;}).length;
+  var missing=[];ans.forEach(function(x,i){if(x===null)missing.push(i+1);});
+  $("cnt").textContent=done===27?"ติ๊กครบ 27 ข้อแล้ว":("ติ๊กแล้ว "+done+"/27 — ยังขาดแถวที่ "+missing.slice(0,6).join(", ")+(missing.length>6?" …":""));
+  var ok=done===27;
+  $("copy").disabled=!ok;
+  if(!ok){$("out").value="";return;}
+  $("out").value=
+    "PO="+$("po").value.trim()+"\n"+
+    "IV="+$("iv").value.trim()+"\n"+
+    "JOB="+$("job").value.trim()+"\n"+
+    "VENDOR="+$("vendor").value.trim()+"\n"+
+    "VCODE="+$("vcode").value.trim()+"\n"+
+    "EMAIL="+$("email").value.trim()+"\n"+
+    "ANS="+ans.join("")+"\n"+
+    "FINE="+fine;
+}
+
+$("copy").onclick=function(){
+  var t=$("out");t.select();t.setSelectionRange(0,99999);
+  var done=false;
+  try{done=document.execCommand("copy");}catch(e){}
+  if(navigator.clipboard&&!done){navigator.clipboard.writeText(t.value).catch(function(){});done=true;}
+  saveV($("vendor").value.trim(),$("vcode").value.trim());fillV();
+  $("copied").hidden=false;
+  if(!done)$("copied").textContent="คัดลอกอัตโนมัติไม่ได้ — เลือกข้อความในกล่องด้านบนแล้วกด Ctrl+C เอง";
+  setTimeout(function(){$("copied").hidden=true;$("copied").textContent="คัดลอกแล้ว — ไปที่หน้า MS Form กดปุ่ม \"กรอก CSM\" บนแถบ bookmark แล้ววางลงไป";},7000);
+};
+
+$("clear").onclick=function(){
+  ans=new Array(27).fill(null);
+  [].forEach.call(document.querySelectorAll("#tbl tbody tr[data-i]"),function(tr){
+    [].forEach.call(tr.querySelectorAll(".opt"),function(x){x.classList.remove("on");});
+    tr.classList.remove("rowfill");
+  });
+  refresh();
+};
+
+refresh();
+})();
+</script>
+</body>
+</html>
