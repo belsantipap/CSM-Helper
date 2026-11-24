@@ -106,6 +106,19 @@ tbody tr.unsure td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
   <div class="step"><b>3</b><div>เสร็จแล้ว ใช้ได้ตลอด ไม่ต้องติดตั้งอีก</div></div>
   <div class="note">ถ้าลากไม่ได้ ให้คลิกขวาบนแถบ bookmark → Add page → ช่อง URL วางโค้ดจาก <b>ดูโค้ดเต็ม</b> ข้างล่าง</div>
   <details>
+  <summary>ใช้บนมือถือ</summary>
+  <p>ส่วน <b>อ่านจากรูปสแกน</b> ตารางติ๊ก ประวัติ และ CSV ใช้บนมือถือได้ทั้งหมด สแกนใน Notes แล้วแนบไฟล์จากหน้านี้ได้เลย</p>
+  <p>ส่วนปุ่ม <b>กรอก CSM</b> บนมือถือลากวางไม่ได้ ต้องทำแบบนี้แทน:</p>
+  <ul>
+    <li>กด <b>ดูโค้ดเต็ม</b> ข้างล่าง แล้วคัดลอกโค้ดทั้งหมด</li>
+    <li>เปิดหน้าอะไรก็ได้ แล้ว <b>เพิ่มเป็น Bookmark / บุ๊กมาร์ก</b></li>
+    <li>เข้าไปแก้ bookmark นั้น ตั้งชื่อว่า <b>csm</b> แล้วลบ URL เดิมทิ้ง วางโค้ดที่คัดลอกมาแทน</li>
+    <li>เวลาจะใช้: เปิดหน้า MS Form แล้วพิมพ์ <b>csm</b> ในช่องที่อยู่เว็บ จะมี bookmark ขึ้นมาให้กด</li>
+  </ul>
+  <p>ถ้าไม่อยากยุ่งกับ bookmark บนมือถือ: ติ๊กและคัดลอกรหัสในมือถือ แล้วส่งรหัสหาตัวเองทาง Teams หรือ LINE จากนั้นค่อยไปวางที่คอม</p>
+</details>
+
+<details>
     <summary>สคริปต์นี้ทำอะไร / ปลอดภัยไหม</summary>
     <ul>
       <li>ทำงานเฉพาะตอนคุณกดปุ่ม บนแท็บที่เปิดอยู่เท่านั้น ไม่ได้รันเบื้องหลัง</li>
@@ -449,8 +462,8 @@ window.CSMUI={
 refresh();
 })();
 </script>
-<script>
-/* ===== ตัวอ่านใบประเมินจากรูป (ทำงานในเครื่องทั้งหมด) ===== */
+<script type="text/plain" id="engsrc">
+/* ===== ตัวอ่านใบประเมินจากรูป — ทำงานในเครื่องนี้ทั้งหมด ===== */
 (function(global){
 "use strict";
 
@@ -647,17 +660,20 @@ function colSum(m,w,h){
 }
 function vskew(ink,w,h,rng,step){
   rng=rng||6; step=step||0.2;
-  // search at half scale for speed, then confirm
   const hw=Math.max(1,w>>1), hh=Math.max(1,h>>1);
   const small=resizeGray(ink,w,h,hw,hh);
   for (let i=0;i<small.length;i++) small[i]=small[i]>0?1:0;
-  let best=-1, ba=0;
-  for (let a=-rng;a<=rng+1e-9;a+=step){
-    const r=rotateBin(small,hw,hh,a);
-    const v=vlines(r,hw,hh,5,13);
+  const score=a=>{
+    const v=vlines(rotateBin(small,hw,hh,a),hw,hh,5,13);
     const c=colSum(v,hw,hh);
     let m=0; for (let i=0;i<hw;i++) if (c[i]>m) m=c[i];
-    if (m>best){ best=m; ba=a; }
+    return m;
+  };
+  let best=-1, ba=0;                       // coarse 1 degree
+  for (let a=-rng;a<=rng+1e-9;a+=1){ const m=score(a); if (m>best){best=m;ba=a;} }
+  for (let a=ba-1;a<=ba+1+1e-9;a+=step){   // refine
+    if (Math.abs(a-ba)<1e-9) continue;
+    const m=score(a); if (m>best){best=m;ba=a;}
   }
   return Math.round(ba*10)/10;
 }
@@ -814,9 +830,12 @@ function deshear(blk,w,h,band,srange,sstep){
     const a=Math.max(0,y-Math.floor(band*0.3)), b=Math.min(h,y2+Math.floor(band*0.3));
     const sh=b-a, seg=blk.subarray(a*w,b*w);
     let bs=0, bk=-1;
-    for (let s=-srange;s<=srange+1e-9;s+=sstep){
-      const k=topSum(rowMean(shearC(seg,w,sh,s),w,sh),8);
-      if (k>bk){ bk=k; bs=s; }
+    const sc=s=>topSum(rowMean(shearC(seg,w,sh,s),w,sh),8);
+    for (let s=-srange;s<=srange+1e-9;s+=sstep*5){     // coarse
+      const k=sc(s); if (k>bk){ bk=k; bs=s; }
+    }
+    for (let s=bs-sstep*4;s<=bs+sstep*4+1e-9;s+=sstep){ // refine
+      const k=sc(s); if (k>bk){ bk=k; bs=s; }
     }
     const hh=y2-y;
     const wseg=shearC(blk.subarray(y*w,y2*w),w,hh,bs);
@@ -1146,9 +1165,50 @@ function say(cls,html){
 }
 function esc(t){return String(t).replace(/[&<>]/g,function(m){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[m];});}
 
+/* ---------- run the reader: in a Worker when possible, else on this thread ---------- */
+var WTAIL = "\nself.onmessage=function(e){var d=e.data;try{"+
+  "var r=self.CSM_ENGINE.readSheet(d.g,d.w,d.h,{log:function(m){self.postMessage({p:m});}});"+
+  "self.postMessage({r:r});}catch(err){self.postMessage({err:String((err&&err.message)||err)});}};\n";
+var useWorker = (typeof Worker!=="undefined");
+function engineSrc(){ var e=$("engsrc"); return e? e.textContent : ""; }
+function mainThread(im,prog){
+  return new Promise(function(res,rej){
+    setTimeout(function(){
+      try{
+        if (!self.CSM_ENGINE) (0,eval)(engineSrc());
+        res(self.CSM_ENGINE.readSheet(im.g,im.w,im.h,{log:prog}));
+      }catch(e){ rej(e); }
+    },60);
+  });
+}
+function runEngine(im,prog){
+  return new Promise(function(res,rej){
+    if (useWorker){
+      var w=null;
+      try{
+        w=new Worker(URL.createObjectURL(new Blob([engineSrc()+WTAIL],{type:"text/javascript"})));
+      }catch(e){ useWorker=false; mainThread(im,prog).then(res,rej); return; }
+      var done=false;
+      w.onmessage=function(e){
+        if (e.data && e.data.p){ prog(e.data.p); return; }
+        done=true; w.terminate();
+        if (e.data && e.data.err) rej(new Error(e.data.err)); else res(e.data.r);
+      };
+      w.onerror=function(){
+        if (done) return; done=true;
+        try{ w.terminate(); }catch(_){}
+        useWorker=false; mainThread(im,prog).then(res,rej);
+      };
+      w.postMessage({g:im.g,w:im.w,h:im.h});     /* copy, not transfer: keeps the fallback usable */
+      return;
+    }
+    mainThread(im,prog).then(res,rej);
+  });
+}
+
 function handle(file){
   if (!file) return;
-  if (!window.CSM_ENGINE){ say("bad","ตัวอ่านรูปโหลดไม่สำเร็จ ลองรีเฟรชหน้านี้"); return; }
+  if (!engineSrc()){ say("bad","ตัวอ่านรูปโหลดไม่สำเร็จ ลองรีเฟรชหน้านี้"); return; }
   say("run","กำลังเปิดไฟล์…");
   var isPdf = /\.pdf$/i.test(file.name) || file.type==="application/pdf";
   var step = isPdf
@@ -1160,8 +1220,10 @@ function handle(file){
     : toGray(file);
 
   step.then(function(im){
-    say("run","กำลังอ่านตาราง… ใช้เวลาราว 3 วินาที");
-    return new Promise(function(res){ setTimeout(function(){ res(window.CSM_ENGINE.readSheet(im.g,im.w,im.h)); },60); });
+    var t0=Date.now();
+    var prog=function(m){ say("run","<b>กำลังอ่าน…</b> "+esc(m)+" &middot; "+Math.round((Date.now()-t0)/1000)+" วิ"); };
+    prog("เตรียมภาพ");
+    return runEngine(im,prog);
   }).then(function(r){
     if (!r.ok){ say("bad","<b>อ่านไม่ได้</b> — "+esc(r.why)+"<br>สแกนใหม่ด้วย Notes &rarr; สแกนเอกสาร &rarr; ฟิลเตอร์ขาวดำ วางกระดาษราบ ทีละแผ่น"); return; }
     var unknown=(r.ans.match(/\./g)||[]).length;
