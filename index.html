@@ -89,6 +89,22 @@ tbody tr.unsure td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .hist .del{border:0;background:none;color:var(--muted);cursor:pointer;font-size:15px;line-height:1;padding:0 4px}
 .hist .del:hover{color:var(--accent)}
 .hist .none{color:var(--muted);padding:6px 0}
+.shots{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:11px}
+.shot{flex:1 1 180px;display:block;text-align:center;padding:13px 14px;border-radius:7px;cursor:pointer;
+  font:600 14px var(--sans);border:1px solid var(--line2);background:#fff;color:var(--ink)}
+.shot:hover{border-color:var(--accent);color:var(--accent)}
+.shot.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.shot.pri:hover{filter:brightness(1.08);color:#fff}
+.shot input{display:none}
+.shot small{display:block;font-weight:400;font-size:11.5px;opacity:.8;margin-top:2px}
+.keyrow{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.keyrow>div{flex:1 1 240px}
+input[type=password]{width:100%;font:inherit;font-family:var(--mono);padding:8px 10px;
+  border:1px solid var(--line2);border-radius:5px;background:#fff;color:var(--ink)}
+select{font:inherit;padding:8px 10px;border:1px solid var(--line2);border-radius:5px;background:#fff;color:var(--ink)}
+.chk{display:flex;gap:7px;align-items:center;font-size:12.5px;color:var(--muted);margin-top:11px}
+.chk input{width:15px;height:15px}
+.usage{font-size:12px;color:var(--muted);margin-top:9px}
 .dupe{background:#fff6e5;color:#8a5a00;padding:9px 13px;border-radius:5px;font-size:13px;margin-top:10px}
 
 </style>
@@ -149,13 +165,51 @@ tbody tr.unsure td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 
 <div class="card">
   <h2>อ่านจากรูปสแกน</h2>
-  <p class="hint">สแกนด้วย Notes &rarr; <b>สแกนเอกสาร</b> &rarr; ฟิลเตอร์ <b>ขาวดำ</b> ทีละแผ่น ให้กรอบจับเฉพาะกระดาษ แล้วแนบไฟล์ที่นี่ — ระบบจะติ๊กทั้ง 27 ข้อให้เอง รูปไม่ถูกส่งออกจากเครื่องนี้</p>
-  <label class="drop" id="drop">
-    <b>แนบรูปสแกน หรือลากมาวาง</b>
-    <span>รองรับ JPG, PNG และ PDF ที่ได้จากการสแกน</span>
-    <input type="file" id="scanfile" accept="image/*,.pdf,application/pdf">
-  </label>
+  <p class="hint">กดถ่ายรูปใบประเมินได้เลย วางกระดาษบนพื้นเรียบ ให้เห็นทั้งแผ่น แล้วระบบจะติ๊กทั้ง 27 ข้อให้ — ไม่ต้องผ่าน Notes ไม่ต้องส่งไฟล์หาตัวเอง</p>
+  <div class="shots">
+    <label class="shot pri">ถ่ายรูปใบประเมิน
+      <small>เปิดกล้องตรงนี้เลย ไม่ต้องผ่าน Notes</small>
+      <input type="file" id="camfile" accept="image/*" capture="environment">
+    </label>
+    <label class="shot drop" id="drop">เลือกไฟล์ หรือลากมาวาง
+      <small>JPG, PNG หรือ PDF ที่สแกนไว้แล้ว</small>
+      <input type="file" id="scanfile" accept="image/*,.pdf,application/pdf">
+    </label>
+  </div>
   <div id="scanstat" class="scanstat" hidden></div>
+
+  <details style="margin-top:14px">
+    <summary>ตั้งค่าตัวอ่าน</summary>
+    <p class="hint" style="margin-top:9px">ใส่ <b>API key ของ Anthropic</b> แล้วระบบจะให้ AI อ่านรูปให้ — ทนภาพเอียง เงา และกระดาษยับได้ดีกว่ามาก ค่าใช้จ่ายประมาณใบละ 1 สตางค์ และ<b>ไม่ใช้เครดิตแชท</b> ถ้าไม่ใส่ จะใช้ตัวอ่านในเครื่องซึ่งฟรีแต่เรื่องมาก</p>
+    <div class="keyrow">
+      <div>
+        <label for="apikey">API key</label>
+        <input type="password" id="apikey" placeholder="วาง API key ที่นี่" autocomplete="off" spellcheck="false">
+      </div>
+      <div style="flex:0 0 auto">
+        <label for="aimodel">รุ่น</label>
+        <select id="aimodel">
+          <option value="claude-haiku-5-5">Haiku 5.5 — ถูกและเร็ว</option>
+          <option value="claude-sonnet-5-5">Sonnet 5.5 — แม่นกว่า แพงกว่า 20 เท่า</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn pri" id="aisave" type="button">บันทึกคีย์</button>
+      <button class="btn" id="aitest" type="button">ทดสอบการเชื่อมต่อ</button>
+      <button class="btn" id="aireset" type="button">ล้างตัวนับค่าใช้จ่าย</button>
+    </div>
+    <div id="aimsg" class="scanstat" hidden></div>
+    <label class="chk"><input type="checkbox" id="forceoffline"> ใช้ตัวอ่านในเครื่องแทน (ไม่ส่งรูปออกไปไหน ไม่มีค่าใช้จ่าย)</label>
+    <div class="usage" id="aiusage"></div>
+    <div class="note" style="margin-top:12px">
+      <b>ก่อนใช้ อ่านตรงนี้</b><br>
+      คีย์จะถูกเก็บไว้ในเบราว์เซอร์ของเครื่องนี้เครื่องเดียว ไม่ถูกส่งไปที่อื่นและไม่ได้อยู่ในโค้ดของหน้าเว็บ
+      แต่ใครก็ตามที่เปิดเบราว์เซอร์เครื่องนี้ได้ ก็ดึงคีย์ออกไปใช้ได้ และจะไปขึ้นบิลที่บัญชีของเจ้าของคีย์<br>
+      แนะนำให้สร้างคีย์แยกไว้สำหรับงานนี้โดยเฉพาะ แล้ว<b>ตั้งวงเงินรายเดือนไว้ใน Console</b> จะได้คุมความเสียหายได้ถ้าคีย์หลุด<br>
+      และเมื่อเปิดใช้โหมดนี้ <b>รูปใบประเมินจะถูกส่งออกไปนอกองค์กร</b> ไปที่ api.anthropic.com — ถ้าติดนโยบายข้อมูลของโรงงาน ให้ติ๊ก &ldquo;ใช้ตัวอ่านในเครื่องแทน&rdquo;
+    </div>
+  </details>
 </div>
 
 <div class="card">
@@ -1114,6 +1168,165 @@ global.CSM_ENGINE={readSheet:readSheet,ITEMS:ITEMS};
 (function(){
 "use strict";
 var $=function(id){return document.getElementById(id);};
+var KKEY="csm_apikey", MKEY="csm_model", UKEY="csm_usage";
+var API="https://api.anthropic.com/v1/messages";
+
+var PROMPT=[
+"ภาพนี้คือ \"แบบประเมินผลการปฏิบัติงาน (Job Evaluation)\" ของผู้รับเหมา",
+"",
+"ในแบบฟอร์มมีตารางให้คะแนนรวม 27 ข้อ เรียงจากบนลงล่างดังนี้",
+"  หมวด 1 ด้านคุณภาพในการทำงาน : ข้อ 1.1 ถึง 1.11 (11 ข้อ)",
+"  หมวด 2 ด้านความปลอดภัยในการทำงาน : ข้อ 2.1 ถึง 2.13 (13 ข้อ)",
+"  หมวด 3 : ข้อ 3.1 (1 ข้อ)",
+"  หมวด 4 : ข้อ 4.1 และ 4.2 (2 ข้อ)",
+"",
+"แต่ละแถวมีช่องติ๊ก 5 ช่อง เรียงจากซ้ายไปขวาคือ 1 , 2 , 3 , 4 , N/A (ไม่เกี่ยวข้อง)",
+"ผู้ประเมินเขียนเครื่องหมาย / หรือ ✓ หรือ x ลงในช่องใดช่องหนึ่งของแถวนั้น",
+"ช่อง N/A บางครั้งเขียนเป็นขีดสั้น ๆ ( - ) แทนเครื่องหมายติ๊ก",
+"",
+"หน้าที่ของคุณ: บอกว่าแต่ละข้อติ๊กอยู่ช่องไหน",
+'  ตอบ "1" "2" "3" หรือ "4" ตามหมายเลขช่องที่ถูกติ๊ก',
+'  ตอบ "N" ถ้าติ๊กช่อง N/A (ไม่เกี่ยวข้อง)',
+'  ตอบ "?" ถ้าแถวนั้นไม่มีเครื่องหมายเลย หรือคุณไม่มั่นใจว่าอยู่ช่องไหน',
+"",
+"กฎสำคัญ",
+'  - ห้ามเดา ถ้าดูไม่ชัดหรือเครื่องหมายคร่อมเส้นจนบอกไม่ได้ ให้ตอบ "?"',
+"  - ดูที่ตำแหน่งของเครื่องหมายติ๊กเป็นหลักเสมอ",
+"  - ถ้าในแถวนั้นมีตัวเลขคะแนนเขียนกำกับไว้ในคอลัมน์ขวาสุด ให้ใช้เป็นตัวตรวจทานได้",
+'    ถ้าตัวเลขที่เขียนไม่ตรงกับช่องที่ติ๊ก ให้ตอบ "?" สำหรับข้อนั้น',
+"  - ห้ามใช้คะแนนรวมท้ายตารางมาตอบ",
+"  - ถ้าเป็นแบบฟอร์มรุ่นเก่าที่มีข้อไม่ครบ 27 ข้อ ให้ตอบเท่าที่มี ข้อที่ไม่มีในกระดาษตอบ \"-\"",
+"",
+"ตอบเป็น JSON อย่างเดียว ห้ามมีข้อความอื่นนอก JSON",
+'{"rows":{"1.1":"3","1.2":"3","1.3":"3","1.4":"3","1.5":"3","1.6":"3","1.7":"3","1.8":"3","1.9":"3","1.10":"3","1.11":"N","2.1":"4","2.2":"3","2.3":"4","2.4":"4","2.5":"N","2.6":"N","2.7":"N","2.8":"4","2.9":"3","2.10":"4","2.11":"4","2.12":"N","2.13":"N","3.1":"4","4.1":"3","4.2":"3"},"note":""}',
+'โดย note ใส่ข้อความสั้น ๆ ภาษาไทยเฉพาะเมื่อมีอะไรผิดปกติ เช่นภาพเบลอ ถ่ายไม่ติดทั้งตาราง หรือเป็นฟอร์มคนละแบบ'
+].join("\n");
+
+var ORDER=(function(){var a=[];for(var i=1;i<=11;i++)a.push("1."+i);
+  for(var j=1;j<=13;j++)a.push("2."+j);a.push("3.1");a.push("4.1");a.push("4.2");return a;})();
+
+function getKey(){ try{return localStorage.getItem(KKEY)||"";}catch(e){return "";} }
+function getModel(){ try{return localStorage.getItem(MKEY)||"claude-haiku-5-5";}catch(e){return "claude-haiku-5-5";} }
+function usage(){ try{return JSON.parse(localStorage.getItem(UKEY)||'{"n":0,"in":0,"out":0}');}catch(e){return {n:0,"in":0,out:0};} }
+function addUsage(u){ try{var x=usage();x.n++;x["in"]+=u.input_tokens||0;x.out+=u.output_tokens||0;
+  localStorage.setItem(UKEY,JSON.stringify(x));}catch(e){} showUsage(); }
+var PRICE={"claude-haiku-5-5":[0.10,0.50],"claude-sonnet-5-5":[2,10]};
+function showUsage(){
+  var el=$("aiusage"); if(!el) return;
+  var x=usage(), p=PRICE[getModel()]||PRICE["claude-haiku-5-5"];
+  var usd=(x["in"]/1e6)*p[0]+(x.out/1e6)*p[1];
+  el.textContent= x.n? ("อ่านไปแล้ว "+x.n+" ใบ · ค่าใช้จ่ายสะสมราว "+(usd*33).toFixed(2)+" บาท") : "ยังไม่ได้ใช้";
+}
+
+/* image -> {dataUrl, mime} resized for the API */
+function prepImage(src){
+  return createImageBitmap(src).then(function(bmp){
+    var L=1568, s=Math.min(1,L/Math.max(bmp.width,bmp.height));
+    var w=Math.round(bmp.width*s), h=Math.round(bmp.height*s);
+    var cur=bmp, cw=bmp.width, ch=bmp.height, t, tx;
+    while (cw>w*2 && ch>h*2){
+      var hw=Math.max(w,Math.round(cw/2)), hh=Math.max(h,Math.round(ch/2));
+      t=document.createElement("canvas"); t.width=hw; t.height=hh;
+      tx=t.getContext("2d"); tx.imageSmoothingQuality="high"; tx.drawImage(cur,0,0,hw,hh);
+      if(cur!==bmp) cur.width=cur.height=1;
+      cur=t; cw=hw; ch=hh;
+    }
+    var c=document.createElement("canvas"); c.width=w; c.height=h;
+    var cx=c.getContext("2d"); cx.imageSmoothingQuality="high"; cx.drawImage(cur,0,0,w,h);
+    if(cur!==bmp) cur.width=cur.height=1;
+    if(bmp.close) bmp.close();
+    var url=c.toDataURL("image/jpeg",0.88);
+    c.width=c.height=1;
+    return url.slice(url.indexOf(",")+1);
+  });
+}
+
+function callApi(b64,key,model){
+  return fetch(API,{
+    method:"POST",
+    headers:{"content-type":"application/json","x-api-key":key,
+             "anthropic-version":"2023-06-01",
+             "anthropic-dangerous-direct-browser-access":"true"},
+    body:JSON.stringify({
+      model:model, max_tokens:1200,
+      messages:[{role:"user",content:[
+        {type:"image",source:{type:"base64",media_type:"image/jpeg",data:b64}},
+        {type:"text",text:PROMPT}
+      ]}]
+    })
+  }).then(function(res){
+    return res.text().then(function(t){
+      var j=null; try{ j=JSON.parse(t); }catch(e){}
+      if(!res.ok){
+        var m=(j&&j.error&&j.error.message)||t.slice(0,200);
+        if(res.status===401) m="API key ไม่ถูกต้อง หรือถูกยกเลิกแล้ว";
+        if(res.status===429) m="ใช้ถี่เกินไป รอสักครู่แล้วลองใหม่";
+        if(res.status===400 && /credit|balance/i.test(m)) m="เครดิตใน Console หมด ต้องเติมเงินก่อน";
+        throw new Error("API "+res.status+" — "+m);
+      }
+      return j;
+    });
+  });
+}
+
+function parseOut(j){
+  var txt="";
+  (j.content||[]).forEach(function(b){ if(b.type==="text") txt+=b.text; });
+  var a=txt.indexOf("{"), b=txt.lastIndexOf("}");
+  if(a<0||b<a) throw new Error("อ่านคำตอบไม่ออก");
+  var o=JSON.parse(txt.slice(a,b+1));
+  var rows=o.rows||{};
+  var ans=ORDER.map(function(k){
+    var v=String(rows[k]==null?"?":rows[k]).trim().toUpperCase();
+    if(v==="0"||v==="NA"||v==="N/A") v="N";
+    return /^[1-4N]$/.test(v)? v : ".";
+  }).join("");
+  return {ans:ans, note:o.note||"", usage:j.usage||{}};
+}
+
+window.CSM_AI={
+  enabled:function(){ return !!getKey(); },
+  model:getModel,
+  read:function(file,prog){
+    var key=getKey(); if(!key) return Promise.reject(new Error("ยังไม่ได้ใส่ API key"));
+    prog("ย่อรูป");
+    var isPdf=/\.pdf$/i.test(file.name||"")||file.type==="application/pdf";
+    var src=isPdf? Promise.resolve(window.CSM_PDFJPEG&&window.CSM_PDFJPEG(file)).then(function(b){
+                     if(!b) throw new Error("ใน PDF นี้ไม่มีรูปที่อ่านได้"); return b; })
+                 : Promise.resolve(file);
+    return src.then(prepImage).then(function(b64){
+      prog("ส่งให้ AI อ่าน");
+      return callApi(b64,key,getModel());
+    }).then(function(j){
+      var r=parseOut(j);
+      addUsage(r.usage);
+      return r;
+    });
+  },
+  showUsage:showUsage,
+  getKey:getKey, getModel:getModel,
+  setKey:function(k){ try{ if(k) localStorage.setItem(KKEY,k); else localStorage.removeItem(KKEY); }catch(e){} },
+  setModel:function(m){ try{ localStorage.setItem(MKEY,m); }catch(e){} showUsage(); },
+  test:function(){
+    var key=getKey(); if(!key) return Promise.reject(new Error("ยังไม่ได้ใส่ API key"));
+    return fetch(API,{method:"POST",
+      headers:{"content-type":"application/json","x-api-key":key,
+               "anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+      body:JSON.stringify({model:getModel(),max_tokens:16,messages:[{role:"user",content:"ตอบคำว่า ok"}]})
+    }).then(function(res){ return res.text().then(function(t){
+      if(res.ok) return true;
+      var j=null;try{j=JSON.parse(t);}catch(e){}
+      throw new Error("API "+res.status+" — "+((j&&j.error&&j.error.message)||t.slice(0,160)));
+    });});
+  },
+  resetUsage:function(){ try{localStorage.removeItem(UKEY);}catch(e){} showUsage(); }
+};
+})();
+</script>
+<script>
+(function(){
+"use strict";
+var $=function(id){return document.getElementById(id);};
 var HKEY="csm_history";
 
 /* ---------- PDF: pull the embedded scan JPEG straight out of the bytes ---------- */
@@ -1128,6 +1341,10 @@ function jpegFromPdf(buf){
   if (en<0) return null;
   return new Blob([a.subarray(st,en)],{type:"image/jpeg"});
 }
+
+window.CSM_PDFJPEG=function(file){
+  return file.arrayBuffer().then(function(b){ return jpegFromPdf(b); });
+};
 
 function toGray(src){                       /* src: Blob/File -> {g,w,h} */
   return createImageBitmap(src).then(function(bmp){
@@ -1206,8 +1423,31 @@ function runEngine(im,prog){
   });
 }
 
+function applyResult(ans,head,note){
+  var unknown=(ans.match(/[.]/g)||[]).length;
+  window.CSMUI.apply(ans,true);
+  var msg="<b>อ่านได้ "+(27-unknown)+" จาก 27 ข้อ</b> "+head+"<br><code>"+esc(ans)+"</code><br>";
+  if (note) msg+="<b>หมายเหตุจากตัวอ่าน:</b> "+esc(note)+"<br>";
+  msg += unknown
+    ? "ข้อที่ขีดแดงคือ<b>อ่านไม่ออก ต้องติ๊กเอง</b> ส่วนขีดเหลืองคือระบบติ๊กให้ — กวาดตาเทียบกับกระดาษอีกรอบก่อนคัดลอกรหัส"
+    : "ขีดเหลืองคือระบบติ๊กให้ทั้งหมด — กวาดตาเทียบกับกระดาษอีกรอบก่อนคัดลอกรหัส";
+  say(unknown? "warn2":"good", msg);
+}
+
 function handle(file){
   if (!file) return;
+  if (window.CSM_AI && window.CSM_AI.enabled() && !$("forceoffline").checked){
+    var t0=Date.now();
+    var prog=function(m){ say("run","<b>กำลังอ่านด้วย AI…</b> "+esc(m)+" &middot; "+Math.round((Date.now()-t0)/1000)+" วิ"); };
+    prog("เตรียมรูป");
+    window.CSM_AI.read(file,prog).then(function(r){
+      applyResult(r.ans,"(อ่านด้วย AI &middot; "+esc(window.CSM_AI.getModel())+")",r.note);
+    }).catch(function(e){
+      say("bad","<b>AI อ่านไม่สำเร็จ</b> — "+esc(e&&e.message?e.message:e)+
+                "<br>ถ้าติดที่เครือข่ายของโรงงาน ลองติ๊ก \"ใช้ตัวอ่านในเครื่อง\" ในกล่องตั้งค่าด้านบนแทน");
+    });
+    return;
+  }
   if (!engineSrc()){ say("bad","ตัวอ่านรูปโหลดไม่สำเร็จ ลองรีเฟรชหน้านี้"); return; }
   say("run","กำลังเปิดไฟล์…");
   var isPdf = /\.pdf$/i.test(file.name) || file.type==="application/pdf";
@@ -1233,19 +1473,15 @@ function handle(file){
                "ติ๊กให้ไว้แล้วแต่<b>ต้องตรวจทุกข้อ</b> หรือสแกนใหม่จะเร็วกว่า<br><code>"+esc(r.ans)+"</code>");
       return;
     }
-    window.CSMUI.apply(r.ans,true);
-    var msg="<b>อ่านได้ "+(27-unknown)+" จาก 27 ข้อ</b> (คุณภาพภาพ: "+r.quality+")<br><code>"+esc(r.ans)+"</code><br>";
-    msg += unknown
-      ? "ข้อที่ขีดแดงคือ<b>อ่านไม่ออก ต้องติ๊กเอง</b> ส่วนขีดเหลืองคือระบบติ๊กให้ — กวาดตาเทียบกับกระดาษอีกรอบก่อนคัดลอกรหัส"
-      : "ขีดเหลืองคือระบบติ๊กให้ทั้งหมด — กวาดตาเทียบกับกระดาษอีกรอบก่อนคัดลอกรหัส";
-    say(unknown? "warn2":"good", msg);
+    applyResult(r.ans,"(ตัวอ่านในเครื่อง &middot; คุณภาพภาพ: "+r.quality+")","");
   }).catch(function(e){
     say("bad","อ่านไฟล์ไม่ได้ — "+esc(e && e.message ? e.message : e));
   });
 }
 
-var drop=$("drop"), inp=$("scanfile");
+var drop=$("drop"), inp=$("scanfile"), cam=$("camfile");
 if (inp) inp.addEventListener("change",function(){ handle(inp.files[0]); inp.value=""; });
+if (cam) cam.addEventListener("change",function(){ handle(cam.files[0]); cam.value=""; });
 if (drop){
   ["dragenter","dragover"].forEach(function(ev){
     drop.addEventListener(ev,function(e){e.preventDefault();drop.classList.add("over");});
@@ -1332,6 +1568,38 @@ if ($("histclear")) $("histclear").onclick=function(){
   b.dataset.armed="1"; b.textContent="กดอีกครั้งเพื่อล้างจริง";
   setTimeout(function(){ b.textContent="ล้างประวัติ"; delete b.dataset.armed; },4000);
 };
+
+/* ---------- AI reader settings ---------- */
+(function(){
+  var k=$("apikey"), m=$("aimodel"), sv=$("aisave"), tb=$("aitest"), msg=$("aimsg");
+  if (!k) return;
+  var cur=window.CSM_AI.getKey();
+  if (cur) k.placeholder="บันทึกไว้แล้ว (ขึ้นต้น "+cur.slice(0,12)+"…)";
+  m.value=window.CSM_AI.getModel();
+  m.onchange=function(){ window.CSM_AI.setModel(m.value); };
+  sv.onclick=function(){
+    var v=k.value.trim();
+    if (v && !/^sk-ant-/.test(v)){ msg.className="scanstat bad"; msg.hidden=false;
+      msg.textContent="คีย์ของ Anthropic ต้องขึ้นต้นด้วย sk-ant- ลองคัดลอกมาใหม่"; return; }
+    window.CSM_AI.setKey(v); k.value="";
+    k.placeholder= v? ("บันทึกไว้แล้ว (ขึ้นต้น "+v.slice(0,12)+"…)") : "วาง API key ที่นี่";
+    msg.className="scanstat good"; msg.hidden=false;
+    msg.textContent= v? "บันทึกคีย์ไว้ในเบราว์เซอร์นี้แล้ว" : "ลบคีย์ออกแล้ว จะกลับไปใช้ตัวอ่านในเครื่อง";
+  };
+  tb.onclick=function(){
+    msg.className="scanstat run"; msg.hidden=false; msg.textContent="กำลังทดสอบ…";
+    window.CSM_AI.test().then(function(){
+      msg.className="scanstat good"; msg.textContent="เชื่อมต่อได้ ใช้งานได้เลย";
+    }).catch(function(e){
+      msg.className="scanstat bad";
+      msg.innerHTML="เชื่อมต่อไม่ได้ — "+esc(e&&e.message?e.message:e)+
+        "<br>ถ้าขึ้นว่า Failed to fetch แปลว่าเครือข่ายที่ใช้อยู่ปิดกั้น api.anthropic.com";
+    });
+  };
+  var rb=$("aireset"); if (rb) rb.onclick=function(){ window.CSM_AI.resetUsage(); };
+  window.CSM_AI.showUsage();
+})();
+
 render(); dupeCheck();
 })();
 </script>
